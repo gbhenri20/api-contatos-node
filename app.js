@@ -1,31 +1,29 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const middlewareError = require('./errors/errors');
+
 dotenv.config();
 
-
 const app = express();
+
 app.use(express.json());
 
-
+// Rotas
 const contatoRouter = require('./routes/contatoRoutes');
 app.use('/contatos', contatoRouter);
 
+// Middleware de erro (deve vir depois das rotas)
+app.use(middlewareError);
 
-mongoose.connect(process.env.MONGODB_URI, {
-});
+// Conexão com MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('Conectado ao MongoDB Atlas!');
+  })
+  .catch((err) => {
+    console.error('Erro ao conectar ao MongoDB:', err);
+  });
 
-
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'Erro de conexão ao MongoDB:'));
-db.once('open', () => {
-  console.log('Conectado ao MongoDB Atlas!');
-});
-
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
-
-export default app;
+// 👇 ESSENCIAL PARA OS TESTES
+module.exports = app;
